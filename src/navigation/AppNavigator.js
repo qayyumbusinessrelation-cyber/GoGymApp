@@ -13,6 +13,11 @@ import BecomeTrainerScreen from '../screens/BecomeTrainerScreen';
 import TermsScreen from '../screens/TermsScreen';
 import PrivacyScreen from '../screens/PrivacyScreen';
 import HelpScreen from '../screens/HelpScreen';
+import LoginScreen from '../screens/LoginScreen';
+import SignupScreen from '../screens/SignupScreen';
+import RatingsReviewScreen from '../screens/RatingsReviewScreen';
+import ChatScreen from '../screens/ChatScreen';
+import AvailabilityScreen from '../screens/AvailabilityScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -48,6 +53,8 @@ function HomeTabs() {
 export default function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="Main" component={HomeTabs} />
       <Stack.Screen name="TrainerDetail" component={TrainerDetailScreen} />
       <Stack.Screen name="Payment" component={PaymentScreen} />
@@ -55,6 +62,9 @@ export default function AppNavigator() {
       <Stack.Screen name="Terms" component={TermsScreen} />
       <Stack.Screen name="Privacy" component={PrivacyScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />
+      <Stack.Screen name="RatingsReview" component={RatingsReviewScreen} />
+      <Stack.Screen name="Chat" component={ChatScreen} />
+      <Stack.Screen name="Availability" component={AvailabilityScreen} />
     </Stack.Navigator>
   );
 }

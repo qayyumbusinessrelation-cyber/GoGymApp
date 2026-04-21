@@ -6,21 +6,20 @@ import {
 import { colors, spacing, radius } from '../theme/colors';
 
 const UPCOMING = [
-  { id: '1', trainer: 'Hafiz Rahman', spec: 'Weight Loss & Cardio', emoji: '🏋️', date: 'Mon, 28 Apr', time: '10:00 AM', package: '4 Sessions', session: '2 of 4', price: 'RM 228', status: 'confirmed' },
-  { id: '2', trainer: 'Siti Norzah', spec: 'Yoga & Flexibility', emoji: '🧘', date: 'Wed, 30 Apr', time: '9:00 AM', package: 'Single Session', session: '1 of 1', price: 'RM 45', status: 'confirmed' },
+  { id: '1', trainer: 'Hafiz Rahman', spec: 'Weight Loss & Cardio', emoji: '🏋️', date: 'Mon, 28 Apr', time: '10:00 AM', package: '4 Sessions', session: '2 of 4', price: 'RM 228', status: 'confirmed', trainerObj: { name: 'Hafiz Rahman', spec: 'Weight Loss & Cardio', emoji: '🏋️', rating: '4.9', sessions: 120 } },
+  { id: '2', trainer: 'Siti Norzah', spec: 'Yoga & Flexibility', emoji: '🧘', date: 'Wed, 30 Apr', time: '9:00 AM', package: 'Single Session', session: '1 of 1', price: 'RM 45', status: 'confirmed', trainerObj: { name: 'Siti Norzah', spec: 'Yoga & Flexibility', emoji: '🧘', rating: '4.8', sessions: 85 } },
 ];
 
 const PAST = [
-  { id: '3', trainer: 'Razif Amir', spec: 'Strength & Powerlifting', emoji: '💪', date: 'Mon, 14 Apr', time: '3:00 PM', package: '8 Sessions', session: '8 of 8', price: 'RM 540', status: 'completed', rating: 5 },
-  { id: '4', trainer: 'Amirah Lim', spec: 'Muay Thai & Fitness', emoji: '🥊', date: 'Fri, 10 Apr', time: '5:00 PM', package: '4 Sessions', session: '4 of 4', price: 'RM 209', status: 'completed', rating: 4 },
-  { id: '5', trainer: 'Danial Ooi', spec: 'Calisthenics & Mobility', emoji: '🤸', date: 'Tue, 1 Apr', time: '11:00 AM', package: 'Single Session', session: '1 of 1', price: 'RM 50', status: 'cancelled', rating: null },
+  { id: '3', trainer: 'Razif Amir', spec: 'Strength & Powerlifting', emoji: '💪', date: 'Mon, 14 Apr', time: '3:00 PM', package: '8 Sessions', session: '8 of 8', price: 'RM 540', status: 'completed', rating: 5, trainerObj: { name: 'Razif Amir', spec: 'Strength & Powerlifting', emoji: '💪', rating: '5.0', sessions: 200 } },
+  { id: '4', trainer: 'Amirah Lim', spec: 'Muay Thai & Fitness', emoji: '🥊', date: 'Fri, 10 Apr', time: '5:00 PM', package: '4 Sessions', session: '4 of 4', price: 'RM 209', status: 'completed', rating: null, trainerObj: { name: 'Amirah Lim', spec: 'Muay Thai & Fitness', emoji: '🥊', rating: '4.7', sessions: 60 } },
+  { id: '5', trainer: 'Danial Ooi', spec: 'Calisthenics & Mobility', emoji: '🤸', date: 'Tue, 1 Apr', time: '11:00 AM', package: 'Single Session', session: '1 of 1', price: 'RM 50', status: 'cancelled', rating: null, trainerObj: { name: 'Danial Ooi', spec: 'Calisthenics & Mobility', emoji: '🤸', rating: '4.8', sessions: 95 } },
 ];
 
 const TABS = ['Upcoming', 'Past'];
 
 export default function BookingsScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('Upcoming');
-
   const data = activeTab === 'Upcoming' ? UPCOMING : PAST;
 
   return (
@@ -81,9 +80,7 @@ export default function BookingsScreen({ navigation }) {
                       {b.status === 'confirmed' ? 'Confirmed' : b.status === 'completed' ? 'Completed' : 'Cancelled'}
                     </Text>
                   </View>
-                  {b.rating && (
-                    <Text style={styles.ratingText}>{'⭐'.repeat(b.rating)}</Text>
-                  )}
+                  {b.rating && <Text style={styles.ratingText}>{'⭐'.repeat(b.rating)}</Text>}
                 </View>
               </View>
               <Text style={styles.price}>{b.price}</Text>
@@ -108,7 +105,24 @@ export default function BookingsScreen({ navigation }) {
 
             {b.status === 'confirmed' && (
               <View style={styles.cardActions}>
-                <TouchableOpacity style={styles.rescheduleBtn}>
+                <TouchableOpacity
+                  style={styles.chatBtn}
+                  onPress={() => navigation.navigate('Chat', {
+                    booking: {
+                      id: b.id,
+                      trainerName: b.trainer,
+                      trainerEmoji: b.emoji,
+                      day: b.date,
+                      time: b.time,
+                    }
+                  })}
+                >
+                  <Text style={styles.chatBtnText}>💬 Message Trainer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.rescheduleBtn}
+                  onPress={() => navigation.navigate('Availability', { booking: b })}
+                >
                   <Text style={styles.rescheduleBtnText}>Reschedule</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.cancelBtn}>
@@ -118,8 +132,11 @@ export default function BookingsScreen({ navigation }) {
             )}
 
             {b.status === 'completed' && !b.rating && (
-              <TouchableOpacity style={styles.reviewBtn}>
-                <Text style={styles.reviewBtnText}>Leave a Review</Text>
+              <TouchableOpacity
+                style={styles.reviewBtn}
+                onPress={() => navigation.navigate('RatingsReview', { trainer: b.trainerObj })}
+              >
+                <Text style={styles.reviewBtnText}>⭐ Leave a Review</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -164,13 +181,15 @@ const styles = StyleSheet.create({
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaIcon: { fontSize: 12 },
   metaText: { fontSize: 11, color: colors.textMuted },
-  cardActions: { flexDirection: 'row', gap: spacing.sm, padding: spacing.md, paddingTop: 0 },
-  rescheduleBtn: { flex: 1, padding: 8, borderRadius: radius.sm, backgroundColor: colors.dark4, alignItems: 'center' },
+  cardActions: { gap: spacing.sm, padding: spacing.md, paddingTop: 0 },
+  chatBtn: { padding: 10, borderRadius: radius.sm, backgroundColor: colors.gold, alignItems: 'center' },
+  chatBtnText: { fontSize: 13, color: '#000', fontWeight: '700' },
+  rescheduleBtn: { padding: 8, borderRadius: radius.sm, backgroundColor: colors.dark4, alignItems: 'center' },
   rescheduleBtnText: { fontSize: 12, color: colors.text, fontWeight: '500' },
-  cancelBtn: { flex: 1, padding: 8, borderRadius: radius.sm, borderWidth: 0.5, borderColor: colors.red, alignItems: 'center' },
+  cancelBtn: { padding: 8, borderRadius: radius.sm, borderWidth: 0.5, borderColor: colors.red, alignItems: 'center' },
   cancelBtnText: { fontSize: 12, color: colors.red, fontWeight: '500' },
-  reviewBtn: { margin: spacing.md, marginTop: 0, padding: 8, borderRadius: radius.sm, backgroundColor: colors.dark4, alignItems: 'center' },
-  reviewBtnText: { fontSize: 12, color: colors.gold, fontWeight: '500' },
+  reviewBtn: { margin: spacing.md, marginTop: 0, padding: 10, borderRadius: radius.sm, backgroundColor: colors.dark4, alignItems: 'center', borderWidth: 0.5, borderColor: colors.gold },
+  reviewBtnText: { fontSize: 13, color: colors.gold, fontWeight: '600' },
   emptyWrap: { alignItems: 'center', paddingTop: 80 },
   emptyEmoji: { fontSize: 48, marginBottom: spacing.lg },
   emptyText: { fontSize: 18, fontWeight: '600', color: colors.text },
