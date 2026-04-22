@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, SafeAreaView, StatusBar, Alert, ActivityIndicator,
-  KeyboardAvoidingView, Platform, ScrollView,
+  KeyboardAvoidingView, Platform, ScrollView, Image,
 } from 'react-native';
 import { colors, spacing, radius } from '../theme/colors';
 import { supabase } from '../lib/supabase';
@@ -26,6 +26,19 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert('Enter your email address above first, then tap Forgot Password.');
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+    if (error) {
+      Alert.alert('Error', error.message);
+    } else {
+      Alert.alert('Email sent!', 'Check your inbox for a password reset link.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.dark} />
@@ -33,9 +46,11 @@ export default function LoginScreen({ navigation }) {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
           <View style={styles.logoWrap}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoEmoji}>💪</Text>
-            </View>
+            <Image
+              source={require('../../assets/icon.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <Text style={styles.logo}><Text style={styles.logoGold}>Go</Text>Gym</Text>
             <Text style={styles.tagline}>Malaysia's PT Marketplace</Text>
           </View>
@@ -71,7 +86,7 @@ export default function LoginScreen({ navigation }) {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.forgotBtn}>
+            <TouchableOpacity style={styles.forgotBtn} onPress={handleForgotPassword}>
               <Text style={styles.forgotText}>Forgot password?</Text>
             </TouchableOpacity>
 
@@ -121,8 +136,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.dark },
   scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xl, paddingVertical: spacing.xxl },
   logoWrap: { alignItems: 'center', marginBottom: spacing.xxl },
-  logoCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: colors.dark3, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.gold, marginBottom: spacing.md },
-  logoEmoji: { fontSize: 36 },
+  logoImage: { width: 100, height: 100, borderRadius: 22, marginBottom: spacing.md },
   logo: { fontSize: 32, fontWeight: '700', color: colors.text, letterSpacing: 3 },
   logoGold: { color: colors.gold },
   tagline: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
