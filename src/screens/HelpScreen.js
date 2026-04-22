@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  StyleSheet, SafeAreaView, StatusBar, Alert, Linking,
+  StyleSheet, SafeAreaView, StatusBar, Linking,
 } from 'react-native';
 import { colors, spacing, radius } from '../theme/colors';
 
@@ -22,8 +22,8 @@ const FAQS = [
     items: [
       { q: 'What is GoGym cancellation policy?', a: 'If you cancel more than 24 hours before your session, you receive a full refund. If you cancel less than 24 hours before, you receive a 50% refund. If you do not show up, no refund is issued.' },
       { q: 'My trainer cancelled — what happens?', a: 'If a Trainer cancels, you receive a full refund automatically. GoGym will notify you immediately and you can rebook with the same or a different trainer.' },
-      { q: 'How long does a refund take?', a: 'Refunds are processed within 3–7 business days depending on your bank or card issuer. GoGym will send you a confirmation email once the refund is initiated.' },
-      { q: 'I have a dispute about a session. What do I do?', a: 'Contact GoGym Support via the Help screen or email us at support@gogym.my. We will investigate and respond within 2 business days. Refund decisions are made after review.' },
+      { q: 'How long does a refund take?', a: 'Refunds are processed within 3-7 business days depending on your bank or card issuer. GoGym will send you a confirmation email once the refund is initiated.' },
+      { q: 'I have a dispute about a session. What do I do?', a: 'Contact GoGym Support via email at gogym.officialmy@gmail.com. We will investigate and respond within 2 business days.' },
     ],
   },
   {
@@ -32,44 +32,53 @@ const FAQS = [
     items: [
       { q: 'What payment methods are accepted?', a: 'GoGym accepts DuitNow QR, FPX Online Banking (Maybank, CIMB, RHB, Hong Leong, Public Bank, AmBank), and Visa/Mastercard credit and debit cards.' },
       { q: 'Is my payment information safe?', a: 'Yes. GoGym does not store your card or bank details. All payments are processed through licensed Malaysian payment gateways that comply with PCI DSS security standards.' },
-      { q: 'Can I get a receipt for my payment?', a: 'Yes. A payment confirmation and receipt is sent to your registered email address after every successful transaction. You can also view your booking history in the Bookings tab.' },
+      { q: 'Can I get a receipt for my payment?', a: 'Yes. A payment confirmation and receipt is sent to your registered email address after every successful transaction.' },
     ],
   },
   {
     category: 'Trainers',
     emoji: '💪',
     items: [
-      { q: 'Are GoGym trainers verified?', a: 'All trainers submit their fitness certifications during registration. GoGym reviews these documents before approving any trainer listing. However, we recommend you also check a trainer\'s reviews and rating before booking.' },
+      { q: 'Are GoGym trainers verified?', a: 'All trainers submit their fitness certifications during registration. GoGym reviews these documents before approving any trainer listing.' },
       { q: 'Can I request a specific trainer?', a: 'Yes — simply tap on any trainer from the Home screen to view their full profile, availability, and book directly with them.' },
-      { q: 'What if I am not happy with my trainer?', a: 'After your session, you can leave an honest rating and review. If you have a serious concern, contact GoGym Support and we will look into it.' },
-      { q: 'Can trainers come to my home?', a: 'Most GoGym trainers offer home visits. Check the trainer\'s profile for the session types they offer — home visit, gym, or outdoor.' },
+      { q: 'What if I am not happy with my trainer?', a: 'After your session, you can leave an honest rating and review. If you have a serious concern, contact GoGym Support at gogym.officialmy@gmail.com.' },
+      { q: 'Can trainers come to my home?', a: 'Most GoGym trainers offer home visits. Check the trainer profile for the session types they offer — home visit, gym, or outdoor.' },
     ],
   },
   {
     category: 'Account',
     emoji: '👤',
     items: [
-      { q: 'How do I update my profile?', a: 'Go to the Profile tab and tap Edit Profile to update your name, email, or phone number.' },
+      { q: 'How do I update my profile?', a: 'Go to the Profile tab and tap Edit Profile to update your name and phone number.' },
       { q: 'I forgot my password. What do I do?', a: 'On the login screen, tap Forgot Password and enter your registered email. A reset link will be sent to you within a few minutes.' },
-      { q: 'How do I delete my account?', a: 'To request account deletion, email us at support@gogym.my with your registered email address. We will process your request within 7 business days. Note that transaction records are retained for legal compliance purposes.' },
+      { q: 'How do I delete my account?', a: 'To request account deletion, email us at gogym.officialmy@gmail.com with your registered email address. We will process your request within 7 business days.' },
     ],
   },
   {
     category: 'For Trainers',
     emoji: '🏋️',
     items: [
-      { q: 'How do I join GoGym as a trainer?', a: 'Tap the "Are you a personal trainer?" banner on the Home screen and complete the 4-step registration. Submit your certification documents for verification. Approval takes 2–3 business days.' },
-      { q: 'How does GoGym commission work?', a: 'GoGym charges 8–10% commission on each completed session. This is automatically deducted from client payments before your payout. There are no upfront fees.' },
+      { q: 'How do I join GoGym as a trainer?', a: 'Tap the "Are you a personal trainer?" banner on the Home screen and complete the 4-step registration. Submit your certification documents for verification. Approval takes 2-3 business days.' },
+      { q: 'How does GoGym commission work?', a: 'GoGym charges 8-10% commission on each completed session. This is automatically deducted from client payments before your payout. There are no upfront fees.' },
       { q: 'When does the monthly subscription start?', a: 'The RM25/month subscription fee will only begin once GoGym reaches 100 active trainers on the platform. You will be given at least 30 days notice before it takes effect.' },
-      { q: 'How do I receive my payments?', a: 'Payouts are transferred to your registered bank account within 3–5 business days after a session is completed and confirmed.' },
+      { q: 'How do I receive my payments?', a: 'Payouts are transferred to your registered bank account every Monday for all sessions completed during the previous week.' },
     ],
   },
 ];
 
 const CONTACT_OPTIONS = [
-  { icon: '✉️', label: 'Email Support', sub: 'support@gogym.my', action: () => Linking.openURL('mailto:support@gogym.my') },
-  { icon: '💬', label: 'WhatsApp Us', sub: '+60 12-000 0000', action: () => Linking.openURL('whatsapp://send?phone=60120000000') },
-  { icon: '🌐', label: 'Visit our website', sub: 'www.gogym.my', action: () => Linking.openURL('https://www.gogym.my') },
+  {
+    icon: '✉️',
+    label: 'Email Support',
+    sub: 'gogym.officialmy@gmail.com',
+    action: () => Linking.openURL('mailto:gogym.officialmy@gmail.com'),
+  },
+  {
+    icon: '💬',
+    label: 'WhatsApp Us',
+    sub: '+60 12-982 0407',
+    action: () => Linking.openURL('https://wa.me/60129820407'),
+  },
 ];
 
 export default function HelpScreen({ navigation }) {
@@ -101,7 +110,6 @@ export default function HelpScreen({ navigation }) {
           <Text style={styles.sub}>We are here to help</Text>
         </View>
 
-        {/* Search */}
         <View style={styles.searchBar}>
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
@@ -118,7 +126,6 @@ export default function HelpScreen({ navigation }) {
           )}
         </View>
 
-        {/* Contact options */}
         {!search && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>CONTACT US</Text>
@@ -135,10 +142,12 @@ export default function HelpScreen({ navigation }) {
             <View style={styles.responseTime}>
               <Text style={styles.responseTimeText}>⏱ Average response time: under 2 business days</Text>
             </View>
+            <View style={styles.hoursBox}>
+              <Text style={styles.hoursText}>🕐 Support hours: Monday – Friday, 9am – 6pm</Text>
+            </View>
           </View>
         )}
 
-        {/* Category tabs */}
         {!search && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>FREQUENTLY ASKED QUESTIONS</Text>
@@ -157,7 +166,6 @@ export default function HelpScreen({ navigation }) {
           </View>
         )}
 
-        {/* FAQ items */}
         <View style={styles.faqList}>
           {search && filteredItems.length === 0 && (
             <View style={styles.emptySearch}>
@@ -187,16 +195,21 @@ export default function HelpScreen({ navigation }) {
           })}
         </View>
 
-        {/* Still need help */}
         {!search && (
           <View style={styles.stillNeedHelp}>
             <Text style={styles.stillTitle}>Still need help?</Text>
             <Text style={styles.stillSub}>Our support team is available Monday–Friday, 9am–6pm</Text>
             <TouchableOpacity
               style={styles.emailBtn}
-              onPress={() => Linking.openURL('mailto:support@gogym.my')}
+              onPress={() => Linking.openURL('mailto:gogym.officialmy@gmail.com')}
             >
               <Text style={styles.emailBtnText}>Email Us</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.waBtn}
+              onPress={() => Linking.openURL('https://wa.me/60129820407')}
+            >
+              <Text style={styles.waBtnText}>WhatsApp Us</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -229,6 +242,8 @@ const styles = StyleSheet.create({
   contactArrow: { fontSize: 18, color: colors.gold },
   responseTime: { marginTop: spacing.sm, padding: spacing.md, backgroundColor: colors.dark3, borderRadius: radius.md, borderLeftWidth: 2, borderLeftColor: colors.gold },
   responseTimeText: { fontSize: 12, color: colors.textMuted },
+  hoursBox: { marginTop: spacing.sm, padding: spacing.md, backgroundColor: colors.dark3, borderRadius: radius.md },
+  hoursText: { fontSize: 12, color: colors.textMuted },
   catScroll: { marginBottom: spacing.sm },
   catPill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.full, backgroundColor: colors.dark3, borderWidth: 0.5, borderColor: colors.dark4, marginRight: spacing.sm },
   catPillActive: { backgroundColor: colors.gold, borderColor: colors.gold },
@@ -245,9 +260,11 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 40, marginBottom: spacing.md },
   emptyText: { fontSize: 16, fontWeight: '600', color: colors.text },
   emptySub: { fontSize: 13, color: colors.textMuted, marginTop: 6, textAlign: 'center', lineHeight: 20 },
-  stillNeedHelp: { margin: spacing.xl, backgroundColor: colors.dark3, borderRadius: radius.md, padding: spacing.xl, alignItems: 'center', borderWidth: 0.5, borderColor: colors.dark4 },
-  stillTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 6 },
-  stillSub: { fontSize: 12, color: colors.textMuted, textAlign: 'center', marginBottom: spacing.lg, lineHeight: 18 },
-  emailBtn: { backgroundColor: colors.gold, borderRadius: radius.md, paddingHorizontal: spacing.xxl, paddingVertical: spacing.md },
+  stillNeedHelp: { margin: spacing.xl, backgroundColor: colors.dark3, borderRadius: radius.md, padding: spacing.xl, alignItems: 'center', borderWidth: 0.5, borderColor: colors.dark4, gap: spacing.md },
+  stillTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
+  stillSub: { fontSize: 12, color: colors.textMuted, textAlign: 'center', lineHeight: 18 },
+  emailBtn: { backgroundColor: colors.gold, borderRadius: radius.md, paddingHorizontal: spacing.xxl, paddingVertical: spacing.md, width: '100%', alignItems: 'center' },
   emailBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
+  waBtn: { backgroundColor: colors.dark4, borderRadius: radius.md, paddingHorizontal: spacing.xxl, paddingVertical: spacing.md, width: '100%', alignItems: 'center', borderWidth: 0.5, borderColor: colors.green },
+  waBtnText: { fontSize: 14, fontWeight: '700', color: colors.green },
 });

@@ -1,8 +1,45 @@
 {
-  "plugins": [
-    "expo-asset"
-  ],
-  "android": {
-    "package": "com.anonymous.gogym"
+  "expo": {
+    "name": "GoGym",
+    "slug": "gogym",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0e0e0e"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.gogym.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#C9A84C"
+      },
+      "package": "com.gogym.app"
+    },
+    "plugins": [
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "GoGym needs access to your photos to upload profile and certification images.",
+          "cameraPermission": "GoGym needs access to your camera to take profile and certification photos."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "05950854-640c-465e-9ade-ef32e8e3c2b4"
+      }
+    },
+    "owner": "danish0407"
   }
 }

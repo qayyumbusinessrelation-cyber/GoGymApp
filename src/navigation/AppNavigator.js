@@ -18,6 +18,11 @@ import SignupScreen from '../screens/SignupScreen';
 import RatingsReviewScreen from '../screens/RatingsReviewScreen';
 import ChatScreen from '../screens/ChatScreen';
 import AvailabilityScreen from '../screens/AvailabilityScreen';
+import TrainerEarningsScreen from '../screens/TrainerEarningsScreen';
+import PTCalendarScreen from '../screens/PTCalendarScreen';
+import ClientProgramScreen from '../screens/ClientProgramScreen';
+import SessionTrackerScreen from '../screens/SessionTrackerScreen';
+import ClientProgressScreen from '../screens/ClientProgressScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -65,6 +70,11 @@ export default function AppNavigator() {
       <Stack.Screen name="RatingsReview" component={RatingsReviewScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />
       <Stack.Screen name="Availability" component={AvailabilityScreen} />
+      <Stack.Screen name="TrainerEarnings" component={TrainerEarningsScreen} />
+      <Stack.Screen name="PTCalendar" component={PTCalendarScreen} />
+      <Stack.Screen name="ClientProgram" component={ClientProgramScreen} />
+      <Stack.Screen name="SessionTracker" component={SessionTrackerScreen} />
+      <Stack.Screen name="ClientProgress" component={ClientProgressScreen} />
     </Stack.Navigator>
   );
 }

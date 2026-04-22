@@ -34,7 +34,7 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.logo}><Text style={styles.logoGold}>Go</Text>Gym</Text>
         <Text style={styles.tagline}>Find your personal trainer today</Text>
         <View style={styles.locationBadge}>
-          <Text style={styles.locationText}>📍 JB · Seremban · N. Sembilan</Text>
+          <Text style={styles.locationText}>📍 Nationwide — Malaysia</Text>
         </View>
       </View>
 
