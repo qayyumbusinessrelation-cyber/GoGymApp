@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView, StatusBar,
+  View, Text, ScrollView, TouchableOpacity, Alert,
+  StyleSheet, SafeAreaView, StatusBar, Modal,
 } from 'react-native';
 import { colors, spacing, radius } from '../theme/colors';
 
@@ -20,7 +20,36 @@ const TABS = ['Upcoming', 'Past'];
 
 export default function BookingsScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('Upcoming');
-  const data = activeTab === 'Upcoming' ? UPCOMING : PAST;
+  const [bookings, setBookings] = useState({ upcoming: UPCOMING, past: PAST });
+  const [cancelModal, setCancelModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+
+  const data = activeTab === 'Upcoming' ? bookings.upcoming : bookings.past;
+
+  const handleCancelPress = (booking) => {
+    setSelectedBooking(booking);
+    setCancelModal(true);
+  };
+
+  const handleConfirmCancel = () => {
+    setCancelModal(false);
+    const hours = 25; // Mock — in real app calculate from session date/time
+    const refundMessage = hours > 24
+      ? 'You will receive a full refund within 3-5 business days.'
+      : 'As the session is within 24 hours, you will receive a 50% refund within 3-5 business days.';
+
+    Alert.alert(
+      'Booking Cancelled',
+      `Your session with ${selectedBooking.trainer} has been cancelled. ${refundMessage}`,
+      [{ text: 'OK', onPress: () => {
+        setBookings(prev => ({
+          ...prev,
+          upcoming: prev.upcoming.filter(b => b.id !== selectedBooking.id),
+          past: [{ ...selectedBooking, status: 'cancelled' }, ...prev.past],
+        }));
+      }}]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -108,26 +137,25 @@ export default function BookingsScreen({ navigation }) {
                 <TouchableOpacity
                   style={styles.chatBtn}
                   onPress={() => navigation.navigate('Chat', {
-                    booking: {
-                      id: b.id,
-                      trainerName: b.trainer,
-                      trainerEmoji: b.emoji,
-                      day: b.date,
-                      time: b.time,
-                    }
+                    booking: { id: b.id, trainerName: b.trainer, trainerEmoji: b.emoji, day: b.date, time: b.time }
                   })}
                 >
                   <Text style={styles.chatBtnText}>💬 Message Trainer</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.rescheduleBtn}
-                  onPress={() => navigation.navigate('Availability', { booking: b })}
-                >
-                  <Text style={styles.rescheduleBtnText}>Reschedule</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.cancelBtn}>
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
-                </TouchableOpacity>
+                <View style={styles.bottomActions}>
+                  <TouchableOpacity
+                    style={styles.rescheduleBtn}
+                    onPress={() => navigation.navigate('Availability', { booking: b })}
+                  >
+                    <Text style={styles.rescheduleBtnText}>Reschedule</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => handleCancelPress(b)}
+                  >
+                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
 
@@ -143,6 +171,45 @@ export default function BookingsScreen({ navigation }) {
         ))}
         <View style={{ height: 80 }} />
       </ScrollView>
+
+      {/* Cancel Confirmation Modal */}
+      <Modal visible={cancelModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Cancel Booking</Text>
+            {selectedBooking && (
+              <>
+                <View style={styles.modalRow}>
+                  <Text style={styles.modalLabel}>Trainer</Text>
+                  <Text style={styles.modalValue}>{selectedBooking.trainer}</Text>
+                </View>
+                <View style={styles.modalRow}>
+                  <Text style={styles.modalLabel}>Date</Text>
+                  <Text style={styles.modalValue}>{selectedBooking.date}</Text>
+                </View>
+                <View style={styles.modalRow}>
+                  <Text style={styles.modalLabel}>Time</Text>
+                  <Text style={styles.modalValue}>{selectedBooking.time}</Text>
+                </View>
+              </>
+            )}
+            <View style={styles.policyBox}>
+              <Text style={styles.policyTitle}>Cancellation Policy</Text>
+              <Text style={styles.policyText}>• Cancel 24+ hours before: Full refund</Text>
+              <Text style={styles.policyText}>• Cancel within 24 hours: 50% refund</Text>
+              <Text style={styles.policyText}>• No show: No refund</Text>
+            </View>
+            <View style={styles.modalBtns}>
+              <TouchableOpacity style={styles.modalKeep} onPress={() => setCancelModal(false)}>
+                <Text style={styles.modalKeepText}>Keep Booking</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalCancel} onPress={handleConfirmCancel}>
+                <Text style={styles.modalCancelText}>Yes, Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -184,9 +251,10 @@ const styles = StyleSheet.create({
   cardActions: { gap: spacing.sm, padding: spacing.md, paddingTop: 0 },
   chatBtn: { padding: 10, borderRadius: radius.sm, backgroundColor: colors.gold, alignItems: 'center' },
   chatBtnText: { fontSize: 13, color: '#000', fontWeight: '700' },
-  rescheduleBtn: { padding: 8, borderRadius: radius.sm, backgroundColor: colors.dark4, alignItems: 'center' },
+  bottomActions: { flexDirection: 'row', gap: spacing.sm },
+  rescheduleBtn: { flex: 1, padding: 8, borderRadius: radius.sm, backgroundColor: colors.dark4, alignItems: 'center' },
   rescheduleBtnText: { fontSize: 12, color: colors.text, fontWeight: '500' },
-  cancelBtn: { padding: 8, borderRadius: radius.sm, borderWidth: 0.5, borderColor: colors.red, alignItems: 'center' },
+  cancelBtn: { flex: 1, padding: 8, borderRadius: radius.sm, borderWidth: 0.5, borderColor: colors.red, alignItems: 'center' },
   cancelBtnText: { fontSize: 12, color: colors.red, fontWeight: '500' },
   reviewBtn: { margin: spacing.md, marginTop: 0, padding: 10, borderRadius: radius.sm, backgroundColor: colors.dark4, alignItems: 'center', borderWidth: 0.5, borderColor: colors.gold },
   reviewBtnText: { fontSize: 13, color: colors.gold, fontWeight: '600' },
@@ -196,4 +264,18 @@ const styles = StyleSheet.create({
   emptySub: { fontSize: 13, color: colors.textMuted, marginTop: 6, marginBottom: spacing.xl },
   emptyBtn: { backgroundColor: colors.gold, borderRadius: radius.md, paddingHorizontal: spacing.xxl, paddingVertical: spacing.md },
   emptyBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
+  modalBox: { backgroundColor: colors.dark2, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.xl, borderTopWidth: 0.5, borderColor: colors.dark4 },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.red, marginBottom: spacing.lg },
+  modalRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm, borderBottomWidth: 0.5, borderBottomColor: colors.dark4 },
+  modalLabel: { fontSize: 13, color: colors.textMuted },
+  modalValue: { fontSize: 13, color: colors.text, fontWeight: '500' },
+  policyBox: { backgroundColor: colors.dark3, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg, borderLeftWidth: 2, borderLeftColor: colors.gold },
+  policyTitle: { fontSize: 12, fontWeight: '600', color: colors.gold, marginBottom: spacing.sm },
+  policyText: { fontSize: 12, color: colors.textMuted, lineHeight: 20 },
+  modalBtns: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl },
+  modalKeep: { flex: 1, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.gold, alignItems: 'center' },
+  modalKeepText: { fontSize: 14, color: '#000', fontWeight: '700' },
+  modalCancel: { flex: 1, padding: spacing.md, borderRadius: radius.md, backgroundColor: '#2a0000', alignItems: 'center', borderWidth: 0.5, borderColor: colors.red },
+  modalCancelText: { fontSize: 14, color: colors.red, fontWeight: '700' },
 });

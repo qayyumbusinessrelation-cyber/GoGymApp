@@ -1,47 +1,101 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView, StatusBar, Switch, Alert, TextInput, Modal, ActivityIndicator,
+  StyleSheet, SafeAreaView, StatusBar, Switch, Alert,
+  TextInput, Modal, ActivityIndicator, Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing, radius } from '../theme/colors';
 import { supabase } from '../lib/supabase';
 
-const STATS = [
-  { label: 'Sessions', value: '13' },
-  { label: 'Trainers', value: '3' },
-  { label: 'This Month', value: '4' },
-];
-
 export default function ProfileScreen({ navigation }) {
   const [notifications, setNotifications] = useState(true);
-  const [userRole, setUserRole] = useState('trainer');
+  const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [profilePhoto, setProfilePhoto] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editForm, setEditForm] = useState({ fullName: '', phone: '' });
+  const [editForm, setEditForm] = useState({ fullName: '', phone: '', bio: '', photo: null });
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const clientStats = [
+    { label: 'Sessions Completed', value: '13' },
+    { label: 'Trainers Worked With', value: '3' },
+    { label: 'Sessions This Month', value: '4' },
+  ];
+
+  const trainerStats = [
+    { label: 'Active Clients', value: '4' },
+    { label: 'Sessions This Week', value: '6' },
+    { label: 'This Month Earned', value: 'RM 327' },
+  ];
+
+  const stats = userRole === 'trainer' ? trainerStats : clientStats;
 
   useEffect(() => { loadUser(); }, []);
 
   const loadUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    setUserEmail(user.email);
-    const { data } = await supabase.from('users').select('full_name, phone, role').eq('id', user.id).single();
-    if (data) {
-      setUserName(data.full_name || '');
-      setUserRole(data.role || 'client');
-      setEditForm({ fullName: data.full_name || '', phone: data.phone || '' });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      setUserEmail(user.email);
+      const { data } = await supabase.from('users').select('full_name, phone, role, avatar_url').eq('id', user.id).single();
+      if (data) {
+        setUserName(data.full_name || '');
+        setUserRole(data.role || 'client');
+        setProfilePhoto(data.avatar_url || null);
+        setEditForm({ fullName: data.full_name || '', phone: data.phone || '', bio: '', photo: data.avatar_url || null });
+      }
+    } catch (e) {
+      setUserRole('client');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const pickPhoto = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) { Alert.alert('Gallery permission is required.'); return; }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true, aspect: [1, 1], quality: 0.8,
+    });
+    if (!result.canceled) {
+      setEditForm(prev => ({ ...prev, photo: result.assets[0].uri }));
+    }
+  };
+
+  const takePhoto = async () => {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) { Alert.alert('Camera permission is required.'); return; }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true, aspect: [1, 1], quality: 0.8,
+    });
+    if (!result.canceled) {
+      setEditForm(prev => ({ ...prev, photo: result.assets[0].uri }));
+    }
+  };
+
+  const handlePhotoPress = () => {
+    Alert.alert('Update Profile Photo', 'Choose a source', [
+      { text: 'Camera', onPress: takePhoto },
+      { text: 'Gallery', onPress: pickPhoto },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const handleSaveProfile = async () => {
     if (!editForm.fullName.trim()) { Alert.alert('Please enter your name.'); return; }
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from('users').update({ full_name: editForm.fullName.trim(), phone: editForm.phone.trim() }).eq('id', user.id);
+    await supabase.from('users').update({
+      full_name: editForm.fullName.trim(),
+      phone: editForm.phone.trim(),
+    }).eq('id', user.id);
     setSaving(false);
     setUserName(editForm.fullName.trim());
+    // Update profile photo in main view immediately
+    if (editForm.photo) setProfilePhoto(editForm.photo);
     setEditModalVisible(false);
     Alert.alert('Profile updated!');
   };
@@ -57,7 +111,7 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const CLIENT_MENU = [
-    { id: 'edit', icon: '✏️', label: 'Edit Profile', action: () => setEditModalVisible(true) },
+    { id: 'edit', icon: '✏️', label: 'Edit Profile', action: () => userRole === 'trainer' ? navigation.navigate('TrainerEditProfile') : setEditModalVisible(true) },
     { id: 'payment', icon: '💳', label: 'Payment Methods', action: () => Alert.alert('Coming Soon', 'Saved payment methods coming soon.') },
     { id: 'notifications', icon: '🔔', label: 'Notifications', toggle: true },
     { id: 'language', icon: '🌐', label: 'Language', value: 'English', action: () => Alert.alert('Coming Soon', 'Bahasa Malaysia and Chinese support coming soon.') },
@@ -76,6 +130,16 @@ export default function ProfileScreen({ navigation }) {
     { id: 'availability', icon: '🗓️', label: 'Availability', sub: 'Manage time slots', action: () => navigation.navigate('Availability') },
   ];
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator color={colors.gold} size="large" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.dark} />
@@ -83,12 +147,16 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.header}><Text style={styles.title}>Profile</Text></View>
 
         <View style={styles.profileCard}>
-          <View style={styles.avatarWrap}>
-            <Text style={styles.avatarEmoji}>👤</Text>
-            <TouchableOpacity style={styles.editAvatar} onPress={() => setEditModalVisible(true)}>
-              <Text style={styles.editAvatarText}>✏️</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.avatarWrap} onPress={handlePhotoPress}>
+            {profilePhoto ? (
+              <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
+            ) : (
+              <Text style={styles.avatarEmoji}>👤</Text>
+            )}
+            <View style={styles.editAvatar}>
+              <Text style={styles.editAvatarText}>📷</Text>
+            </View>
+          </TouchableOpacity>
           <Text style={styles.userName}>{userName || 'GoGym User'}</Text>
           <Text style={styles.userEmail}>{userEmail}</Text>
           <View style={styles.memberBadge}>
@@ -97,15 +165,14 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         <View style={styles.statsRow}>
-          {STATS.map((s, i) => (
-            <View key={s.label} style={[styles.statBox, i < STATS.length - 1 && styles.statBorder]}>
+          {stats.map((s, i) => (
+            <View key={s.label} style={[styles.statBox, i < stats.length - 1 && styles.statBorder]}>
               <Text style={styles.statValue}>{s.value}</Text>
               <Text style={styles.statLabel}>{s.label}</Text>
             </View>
           ))}
         </View>
 
-        {/* PT Suite — trainer only */}
         {userRole === 'trainer' && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>PT SUITE</Text>
@@ -158,10 +225,33 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Edit Profile</Text>
+            <TouchableOpacity style={styles.modalPhotoWrap} onPress={handlePhotoPress}>
+              {editForm.photo ? (
+                <Image source={{ uri: editForm.photo }} style={styles.modalPhoto} />
+              ) : (
+                <View style={styles.modalPhotoPlaceholder}>
+                  <Text style={styles.modalPhotoIcon}>📷</Text>
+                  <Text style={styles.modalPhotoText}>Tap to update photo</Text>
+                </View>
+              )}
+            </TouchableOpacity>
             <Text style={styles.fieldLabel}>Full name</Text>
-            <TextInput style={styles.input} value={editForm.fullName} onChangeText={v => setEditForm(p => ({ ...p, fullName: v }))} placeholder="Your full name" placeholderTextColor={colors.textMuted} />
+            <TextInput style={styles.input} value={editForm.fullName}
+              onChangeText={v => setEditForm(p => ({ ...p, fullName: v }))}
+              placeholder="Your full name" placeholderTextColor={colors.textMuted} />
             <Text style={styles.fieldLabel}>Phone number</Text>
-            <TextInput style={styles.input} value={editForm.phone} onChangeText={v => setEditForm(p => ({ ...p, phone: v }))} placeholder="+60 12-345 6789" placeholderTextColor={colors.textMuted} keyboardType="phone-pad" />
+            <TextInput style={styles.input} value={editForm.phone}
+              onChangeText={v => setEditForm(p => ({ ...p, phone: v }))}
+              placeholder="+60 12-345 6789" placeholderTextColor={colors.textMuted} keyboardType="phone-pad" />
+            <Text style={styles.fieldLabel}>Bio</Text>
+            <TextInput
+              style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+              value={editForm.bio}
+              onChangeText={v => setEditForm(p => ({ ...p, bio: v }))}
+              placeholder={userRole === 'trainer' ? 'Tell clients about your training style...' : 'Tell us about your fitness goals...'}
+              placeholderTextColor={colors.textMuted}
+              multiline
+            />
             <View style={styles.modalBtns}>
               <TouchableOpacity style={styles.modalCancel} onPress={() => setEditModalVisible(false)}>
                 <Text style={styles.modalCancelText}>Cancel</Text>
@@ -179,22 +269,24 @@ export default function ProfileScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.dark },
+  loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: { paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.lg },
   title: { fontSize: 26, fontWeight: '700', color: colors.text, letterSpacing: 0.5 },
   profileCard: { alignItems: 'center', paddingBottom: spacing.xl, borderBottomWidth: 0.5, borderBottomColor: colors.dark4, marginHorizontal: spacing.xl },
-  avatarWrap: { width: 90, height: 90, borderRadius: 45, backgroundColor: colors.dark3, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.gold, marginBottom: spacing.md, position: 'relative' },
+  avatarWrap: { width: 90, height: 90, borderRadius: 45, backgroundColor: colors.dark3, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.gold, marginBottom: spacing.md, position: 'relative', overflow: 'hidden' },
+  profilePhoto: { width: 90, height: 90, borderRadius: 45 },
   avatarEmoji: { fontSize: 44 },
-  editAvatar: { position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: 13, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
-  editAvatarText: { fontSize: 12 },
+  editAvatar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', paddingVertical: 3 },
+  editAvatarText: { fontSize: 14 },
   userName: { fontSize: 20, fontWeight: '700', color: colors.text },
   userEmail: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
   memberBadge: { marginTop: spacing.md, backgroundColor: colors.dark3, borderRadius: radius.full, paddingHorizontal: spacing.md, paddingVertical: 6, borderWidth: 0.5, borderColor: colors.gold },
   memberText: { fontSize: 12, color: colors.gold, fontWeight: '500' },
   statsRow: { flexDirection: 'row', marginHorizontal: spacing.xl, marginVertical: spacing.xl, backgroundColor: colors.dark3, borderRadius: radius.md, borderWidth: 0.5, borderColor: colors.dark4 },
-  statBox: { flex: 1, alignItems: 'center', paddingVertical: spacing.lg },
+  statBox: { flex: 1, alignItems: 'center', paddingVertical: spacing.lg, paddingHorizontal: 4 },
   statBorder: { borderRightWidth: 0.5, borderRightColor: colors.dark4 },
-  statValue: { fontSize: 20, fontWeight: '700', color: colors.gold },
-  statLabel: { fontSize: 11, color: colors.textMuted, marginTop: 4 },
+  statValue: { fontSize: 18, fontWeight: '700', color: colors.gold },
+  statLabel: { fontSize: 9, color: colors.textMuted, marginTop: 4, textAlign: 'center' },
   section: { paddingHorizontal: spacing.xl, marginBottom: spacing.lg },
   sectionTitle: { fontSize: 11, fontWeight: '500', letterSpacing: 1.5, color: colors.textMuted, marginBottom: spacing.md },
   ptGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
@@ -215,7 +307,12 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 12, color: colors.textMuted },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
   modalBox: { backgroundColor: colors.dark2, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.xl, borderTopWidth: 0.5, borderColor: colors.dark4 },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.gold, marginBottom: spacing.xl },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.gold, marginBottom: spacing.lg },
+  modalPhotoWrap: { alignSelf: 'center', marginBottom: spacing.lg },
+  modalPhoto: { width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: colors.gold },
+  modalPhotoPlaceholder: { width: 80, height: 80, borderRadius: 40, backgroundColor: colors.dark3, borderWidth: 2, borderColor: colors.dark4, alignItems: 'center', justifyContent: 'center' },
+  modalPhotoIcon: { fontSize: 24 },
+  modalPhotoText: { fontSize: 9, color: colors.textMuted, textAlign: 'center', marginTop: 2 },
   fieldLabel: { fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm, marginTop: spacing.md },
   input: { backgroundColor: colors.dark3, borderRadius: radius.md, padding: spacing.md, color: colors.text, fontSize: 14, borderWidth: 0.5, borderColor: colors.dark4 },
   modalBtns: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl },

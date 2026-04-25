@@ -16,14 +16,22 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.gogym.app"
+      "bundleIdentifier": "com.gogym.app",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#C9A84C"
       },
-      "package": "com.gogym.app"
+      "package": "com.gogym.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "runtimeVersion": "1.0.0"
     },
     "plugins": [
       "expo-asset",
@@ -40,6 +48,9 @@
         "projectId": "05950854-640c-465e-9ade-ef32e8e3c2b4"
       }
     },
-    "owner": "danish0407"
+    "owner": "danish0407",
+    "updates": {
+      "url": "https://u.expo.dev/05950854-640c-465e-9ade-ef32e8e3c2b4"
+    }
   }
 }
